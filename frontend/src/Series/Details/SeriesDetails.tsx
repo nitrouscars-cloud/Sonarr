@@ -59,6 +59,7 @@ import SeriesAlternateTitles from './SeriesAlternateTitles';
 import SeriesDetailsLinks from './SeriesDetailsLinks';
 import SeriesDetailsProvider from './SeriesDetailsProvider';
 import SeriesDetailsSeason from './SeriesDetailsSeason';
+import CompleteSeriesInteractiveSearchModal from 'Series/Search/CompleteSeriesInteractiveSearchModal';
 import SeriesProgressLabel from './SeriesProgressLabel';
 import SeriesTags from './SeriesTags';
 import styles from './SeriesDetails.css';
@@ -211,6 +212,8 @@ function SeriesDetails({ seriesId }: SeriesDetailsProps) {
 
   const [isOrganizeModalOpen, setIsOrganizeModalOpen] = useState(false);
   const [isManageEpisodesOpen, setIsManageEpisodesOpen] = useState(false);
+  const [isCompleteSeriesSearchOpen, setIsCompleteSeriesSearchOpen] =
+    useState(false);
   const [isEditSeriesModalOpen, setIsEditSeriesModalOpen] = useState(false);
   const [isDeleteSeriesModalOpen, setIsDeleteSeriesModalOpen] = useState(false);
   const [isSeriesHistoryModalOpen, setIsSeriesHistoryModalOpen] =
@@ -356,6 +359,14 @@ function SeriesDetails({ seriesId }: SeriesDetailsProps) {
     });
   }, [seriesId, executeCommand]);
 
+  const handleCompleteSeriesSearchPress = useCallback(() => {
+    setIsCompleteSeriesSearchOpen(true);
+  }, []);
+
+  const handleCompleteSeriesSearchClose = useCallback(() => {
+    setIsCompleteSeriesSearchOpen(false);
+  }, []);
+
   const populate = useCallback(() => {
     refetchEpisodes();
     refetchEpisodeFiles();
@@ -461,6 +472,14 @@ function SeriesDetails({ seriesId }: SeriesDetailsProps) {
                   : translate('NoMonitoredEpisodes')
               }
               onPress={handleSearchPress}
+            />
+
+            <PageToolbarButton
+              label={translate('CompleteSeriesSearch')}
+              iconName={icons.INTERACTIVE}
+              isDisabled={!hasEpisodes}
+              title={translate('CompleteSeriesSearchTooltip')}
+              onPress={handleCompleteSeriesSearchPress}
             />
 
             <PageToolbarSeparator />
@@ -861,6 +880,13 @@ function SeriesDetails({ seriesId }: SeriesDetailsProps) {
             showImportMode={false}
             modalTitle={translate('ManageEpisodes')}
             onModalClose={handleManageEpisodesModalClose}
+          />
+
+          <CompleteSeriesInteractiveSearchModal
+            isOpen={isCompleteSeriesSearchOpen}
+            seriesId={seriesId}
+            title={title}
+            onModalClose={handleCompleteSeriesSearchClose}
           />
 
           <SeriesHistoryModal
