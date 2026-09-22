@@ -60,9 +60,20 @@
       var theme = '_THEME_';
       var defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       var finalTheme =
-        theme === 'dark' || (theme === 'auto' && defaultDark) ? 'dark' : 'light';
+        theme === 'night'
+          ? 'night'
+          : theme === 'dark' || (theme === 'auto' && defaultDark)
+            ? 'dark'
+            : 'light';
 
-      document.documentElement.style.setProperty('--pageBackground', finalTheme === 'dark' ? '#202020' : '#f5f7fa');
+      document.documentElement.style.setProperty(
+        '--pageBackground',
+        finalTheme === 'night'
+          ? '#000'
+          : finalTheme === 'dark'
+            ? '#202020'
+            : '#f5f7fa'
+      );
     </script>
 
     __MINI_PROFILER__
