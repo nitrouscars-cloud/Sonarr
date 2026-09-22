@@ -233,10 +233,16 @@ namespace NzbDrone.Core.Parser
             {
                 remoteEpisode.Series = series;
 
-                if (remoteEpisode.MappedSeasonNumber.HasValue &&
-                    ValidateParsedEpisodeInfo.ValidateForSeriesType(parsedEpisodeInfo, series))
+                if (ValidateParsedEpisodeInfo.ValidateForSeriesType(parsedEpisodeInfo, series))
                 {
-                    remoteEpisode.Episodes = GetEpisodes(parsedEpisodeInfo, series, remoteEpisode.MappedSeasonNumber.Value, sceneSource, searchCriteria);
+                    if (parsedEpisodeInfo.IsCompleteSeries)
+                    {
+                        remoteEpisode.Episodes = GetFullSeasonEpisodes(parsedEpisodeInfo, series, remoteEpisode.MappedSeasonNumber, sceneSource);
+                    }
+                    else if (remoteEpisode.MappedSeasonNumber.HasValue)
+                    {
+                        remoteEpisode.Episodes = GetEpisodes(parsedEpisodeInfo, series, remoteEpisode.MappedSeasonNumber.Value, sceneSource, searchCriteria);
+                    }
                 }
             }
 
@@ -265,6 +271,11 @@ namespace NzbDrone.Core.Parser
                 return remoteEpisode.Episodes;
             }
 
+            if (parsedEpisodeInfo.IsCompleteSeries && parsedEpisodeInfo.FullSeason)
+            {
+                return GetFullSeasonEpisodes(parsedEpisodeInfo, series, null, sceneSource);
+            }
+
             if (!parsedEpisodeInfo.SeasonNumber.HasValue)
             {
                 return new List<Episode>();
@@ -273,10 +284,64 @@ namespace NzbDrone.Core.Parser
             return GetEpisodes(parsedEpisodeInfo, series, parsedEpisodeInfo.SeasonNumber.Value, sceneSource, searchCriteria);
         }
 
+        private List<Episode> GetFullSeasonEpisodes(ParsedEpisodeInfo parsedEpisodeInfo, Series series, int? mappedSeasonNumber, bool sceneSource)
+        {
+            var seasonNumbers = parsedEpisodeInfo.SeasonNumbers;
+
+            if (parsedEpisodeInfo.IsCompleteSeries && seasonNumbers.Empty())
+            {
+                seasonNumbers = series.Seasons
+                    .Where(s => s.SeasonNumber > 0)
+                    .Select(s => s.SeasonNumber)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToArray();
+            }
+
+            if (seasonNumbers.Empty())
+            {
+                return new List<Episode>();
+            }
+
+            var seasonOffset = 0;
+
+            if (mappedSeasonNumber.HasValue && parsedEpisodeInfo.SeasonNumbers.Any())
+            {
+                seasonOffset = mappedSeasonNumber.Value - parsedEpisodeInfo.SeasonNumbers.First();
+            }
+
+            var episodes = new List<Episode>();
+
+            foreach (var seasonNumber in seasonNumbers)
+            {
+                var mappedSeason = seasonNumber + seasonOffset;
+
+                if (series.UseSceneNumbering && sceneSource)
+                {
+                    var sceneEpisodes = _episodeService.GetEpisodesBySceneSeason(series.Id, mappedSeason);
+
+                    if (sceneEpisodes.Any())
+                    {
+                        episodes.AddRange(sceneEpisodes);
+                        continue;
+                    }
+                }
+
+                episodes.AddRange(_episodeService.GetEpisodesBySeason(series.Id, mappedSeason));
+            }
+
+            return episodes.DistinctBy(e => e.Id).ToList();
+        }
+
         private List<Episode> GetEpisodes(ParsedEpisodeInfo parsedEpisodeInfo, Series series, int mappedSeasonNumber, bool sceneSource, SearchCriteriaBase searchCriteria)
         {
             if (parsedEpisodeInfo.FullSeason)
             {
+                if (parsedEpisodeInfo.IsMultiSeason || parsedEpisodeInfo.IsCompleteSeries)
+                {
+                    return GetFullSeasonEpisodes(parsedEpisodeInfo, series, mappedSeasonNumber, sceneSource);
+                }
+
                 if (series.UseSceneNumbering && sceneSource)
                 {
                     var episodes = _episodeService.GetEpisodesBySceneSeason(series.Id, mappedSeasonNumber);
