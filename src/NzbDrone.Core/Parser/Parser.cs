@@ -209,8 +209,12 @@ namespace NzbDrone.Core.Parser
                 new Regex(@"^(?<title>.+?)(?:[-_\W](?<![()\[!]))+S(?<season>(?<!\d+)(?:\d{2})(?!\d+))(?:\.)(?<episode>\d{2,3}(?!\d+))(?:[-_. ]|$)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled),
 
-                // Multi-season pack
-                new Regex(@"^(?<title>.+?)(Complete Series)?[-_. ]+(?:S|(?:Season|Saison|Series|Stagione)[_. ])(?<season>(?<!\d+)(?:\d{1,2})(?!\d+))(?:(?:[-_. ]{1}|[-_. ]{3})(?:S|(?:Season|Saison|Series|Stagione)[_. ])?(?<season>(?<!\d+)(?:\d{1,2})(?!\d+))){1,}",
+                // Multi-season pack, optionally marked as a complete-series release
+                new Regex(@"^(?<title>.+?)(?:[-_. ]+(?<completeseries>Complete[_. ]+(?:Series|Show|Collection)|Int[eé]grale|S[eé]rie[_. ]+(?:int[eé]grale|compl[eè]te)|Serie[_. ]+(?:integrale|complete)))?[-_. ]+(?:S|(?:Season|Saison|Series|Stagione)[_. ])(?<season>(?<!\d+)(?:\d{1,2})(?!\d+))(?:(?:[-_. ]{1}|[-_. ]{3})(?:S|(?:Season|Saison|Series|Stagione)[_. ])?(?<season>(?<!\d+)(?:\d{1,2})(?!\d+))){1,}",
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled),
+
+                // Complete series / intégrale without explicit season numbers
+                new Regex(@"^(?<title>.+?)[-_. ]+(?<completeseries>Complete[_. ]+(?:Series|Show|Collection)|Int[eé]grale|S[eé]rie[_. ]+(?:int[eé]grale|compl[eè]te)|Serie[_. ]+(?:integrale|complete))(?:[-_. ]|$)",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled),
 
                 // Partial season pack
@@ -1007,7 +1011,8 @@ namespace NzbDrone.Core.Parser
                     ReleaseTitle = releaseTitle,
                     SeasonNumber = 0,
                     EpisodeNumbers = Array.Empty<int>(),
-                    AbsoluteEpisodeNumbers = Array.Empty<int>()
+                    AbsoluteEpisodeNumbers = Array.Empty<int>(),
+                    IsCompleteSeries = matchCollection[0].Groups["completeseries"].Success
                 };
 
                 foreach (Match matchGroup in matchCollection)
@@ -1127,7 +1132,13 @@ namespace NzbDrone.Core.Parser
 
                 var distinctSeasons = seasons.Distinct().OrderBy(s => s).ToArray();
 
-                if (distinctSeasons.Length is 1 or > 2)
+                if (result.IsCompleteSeries && distinctSeasons.Length == 0)
+                {
+                    // Complete-series releases without explicit season numbers are resolved
+                    // against the known series seasons later in ParsingService.
+                    result.SeasonNumbers = [];
+                }
+                else if (distinctSeasons.Length is 1 or > 2)
                 {
                     result.SeasonNumbers = distinctSeasons;
                 }
