@@ -2162,7 +2162,7 @@
     "TheLogLevelDefault": "Le niveau de journalisation est par défaut à « Information » et peut être modifié dans les [paramètres généraux](/settings/general)",
     "TheTvdb": "TheTVDB",
     "Theme": "Thème",
-    "ThemeHelpText": "Modifiez le thème de l'interface utilisateur de l'application, le thème « Auto » utilisera le thème de votre système d'exploitation pour définir le mode clair ou sombre. Inspiré par Theme.Park",
+    "ThemeHelpText": "Modifiez le thème de l'interface. Auto suit le mode clair/sombre du système; Night utilise une palette presque noire de style AMOLED. Inspiré par Theme.Park",
     "Threshold": "Seuil",
     "Thursday": "Jeudi",
     "Time": "Heure",
