@@ -59,7 +59,6 @@ import toggleSelected from 'Utilities/Table/toggleSelected';
 import SeriesAlternateTitles from './SeriesAlternateTitles';
 import SeriesDetailsLinks from './SeriesDetailsLinks';
 import SeriesDetailsProvider from './SeriesDetailsProvider';
-import CompleteSeriesInteractiveSearchModal from 'Series/Search/CompleteSeriesInteractiveSearchModal';
 import SeriesDetailsSeason from './SeriesDetailsSeason';
 import SeriesProgressLabel from './SeriesProgressLabel';
 import SeriesTags from './SeriesTags';
