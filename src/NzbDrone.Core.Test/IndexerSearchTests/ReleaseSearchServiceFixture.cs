@@ -35,6 +35,10 @@ namespace NzbDrone.Core.Test.IndexerSearchTests
                   .Setup(s => s.AutomaticSearchEnabled(true))
                   .Returns(new List<IIndexer> { _mockIndexer.Object });
 
+            Mocker.GetMock<IIndexerFactory>()
+                  .Setup(s => s.InteractiveSearchEnabled(true))
+                  .Returns(new List<IIndexer> { _mockIndexer.Object });
+
             Mocker.GetMock<IMakeDownloadDecision>()
                 .Setup(s => s.GetSearchDecision(It.IsAny<List<Parser.Model.ReleaseInfo>>(), It.IsAny<SearchCriteriaBase>()))
                 .Returns(new List<DownloadDecision>());
@@ -820,5 +824,38 @@ namespace NzbDrone.Core.Test.IndexerSearchTests
             allCriteria.Last().As<SingleEpisodeSearchCriteria>().SeasonNumber.Should().Be(2);
             allCriteria.Last().As<SingleEpisodeSearchCriteria>().EpisodeNumber.Should().Be(3);
         }
+
+        [Test]
+        public async Task CompleteSeriesSearch_should_query_integrale_keywords_and_full_season_range()
+        {
+            _xemSeries.Title = "Series Title";
+            _xemSeries.Seasons = new List<Season>
+            {
+                new Season { SeasonNumber = 0 },
+                new Season { SeasonNumber = 1 },
+                new Season { SeasonNumber = 2 },
+                new Season { SeasonNumber = 3 },
+                new Season { SeasonNumber = 4 }
+            };
+
+            WithEpisode(1, 1, null, null);
+            WithEpisode(4, 1, null, null);
+
+            Mocker.GetMock<IEpisodeService>()
+                .Setup(v => v.GetEpisodeBySeries(_xemSeries.Id))
+                .Returns(_xemEpisodes);
+
+            var allCriteria = WatchForSearchCriteria();
+
+            await Subject.CompleteSeriesSearch(_xemSeries.Id, true, true);
+
+            var criteria = allCriteria.OfType<SpecialEpisodeSearchCriteria>().Single();
+            criteria.InteractiveSearch.Should().BeTrue();
+            criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" Integrale"));
+            criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" Intégrale"));
+            criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" Complete Series"));
+            criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" S01-S04"));
+        }
+
     }
 }
