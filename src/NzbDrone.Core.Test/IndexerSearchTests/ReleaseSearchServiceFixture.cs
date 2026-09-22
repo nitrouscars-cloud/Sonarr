@@ -856,6 +856,5 @@ namespace NzbDrone.Core.Test.IndexerSearchTests
             criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" Complete Series"));
             criteria.EpisodeQueryTitles.Should().Contain(q => q.EndsWith(" S01-S04"));
         }
-
     }
 }
