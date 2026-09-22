@@ -177,7 +177,6 @@ namespace NzbDrone.Core.Download
 
                     return;
                 }
-
             }
 
             var statusMessages = new List<TrackedDownloadStatusMessage>
