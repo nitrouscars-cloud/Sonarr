@@ -31,6 +31,7 @@ namespace NzbDrone.Core.Parser.Model
         public List<Language> Languages { get; set; }
         public bool FullSeason { get; set; }
         public bool IsPartialSeason { get; set; }
+        public bool IsCompleteSeries { get; set; }
         public bool IsMultiSeason => SeasonNumbers.Length > 1;
         public bool IsSeasonExtra { get; set; }
         public bool IsSeasonTitle { get; set; }
