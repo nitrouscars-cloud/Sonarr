@@ -379,6 +379,32 @@ namespace NzbDrone.Core.Test.Download.CompletedDownloadServiceTests
         }
 
         [Test]
+        public void should_import_multi_season_download_when_all_files_match()
+        {
+            var episode1 = new Episode { Id = 1, SeasonNumber = 1, EpisodeNumber = 1 };
+            var episode2 = new Episode { Id = 2, SeasonNumber = 2, EpisodeNumber = 1 };
+
+            _trackedDownload.RemoteEpisode.Episodes = new List<Episode> { episode1, episode2 };
+
+            Mocker.GetMock<IDownloadedEpisodesImportService>()
+                .Setup(v => v.ProcessPath(It.IsAny<string>(), It.IsAny<ImportMode>(), It.IsAny<Series>(), It.IsAny<DownloadClientItem>()))
+                .Returns(new List<ImportResult>
+                {
+                    new ImportResult(
+                        new ImportDecision(
+                            new LocalEpisode { Path = @"C:\TestPath\Droned.S01E01.mkv", Episodes = new List<Episode> { episode1 } })),
+
+                    new ImportResult(
+                        new ImportDecision(
+                            new LocalEpisode { Path = @"C:\TestPath\Droned.S02E01.mkv", Episodes = new List<Episode> { episode2 } }))
+                });
+
+            Subject.Import(_trackedDownload);
+
+            AssertImported();
+        }
+
+        [Test]
         public void should_block_import_and_publish_manual_interaction_event_for_dangerous_file_that_is_not_failed()
         {
             Mocker.GetMock<IDownloadedEpisodesImportService>()
