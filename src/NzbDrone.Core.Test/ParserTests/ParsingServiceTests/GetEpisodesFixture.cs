@@ -603,6 +603,5 @@ namespace NzbDrone.Core.Test.ParserTests.ParsingServiceTests
             Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 2), Times.Once);
             Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 3), Times.Once);
         }
-
     }
 }
