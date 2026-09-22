@@ -36,6 +36,7 @@ import DeleteSeriesModal from 'Series/Delete/DeleteSeriesModal';
 import EditSeriesModal from 'Series/Edit/EditSeriesModal';
 import SeriesHistoryModal from 'Series/History/SeriesHistoryModal';
 import MonitoringOptionsModal from 'Series/MonitoringOptions/MonitoringOptionsModal';
+import CompleteSeriesInteractiveSearchModal from 'Series/Search/CompleteSeriesInteractiveSearchModal';
 import { Image, SeriesStatus, Statistics } from 'Series/Series';
 import SeriesGenres from 'Series/SeriesGenres';
 import SeriesPoster from 'Series/SeriesPoster';
