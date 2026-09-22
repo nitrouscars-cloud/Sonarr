@@ -2185,7 +2185,7 @@
   "TheLogLevelDefault": "The log level defaults to 'Debug' and can be changed in [General Settings](/settings/general)",
   "TheTvdb": "TheTVDB",
   "Theme": "Theme",
-  "ThemeHelpText": "Change Application UI Theme, 'Auto' Theme will use your OS Theme to set Light or Dark mode. Inspired by Theme.Park",
+  "ThemeHelpText": "Change the application UI theme. Auto follows your OS light/dark preference; Night uses an AMOLED-style near-black palette. Inspired by Theme.Park",
   "Threshold": "Threshold",
   "Thursday": "Thursday",
   "Time": "Time",
