@@ -560,5 +560,49 @@ namespace NzbDrone.Core.Test.ParserTests.ParsingServiceTests
             Mocker.GetMock<IEpisodeService>()
                   .Verify(v => v.FindEpisode(_series.TvdbId, _parsedEpisodeInfo.SeasonNumber.Value, _parsedEpisodeInfo.EpisodeNumbers.First()), Times.Once());
         }
+
+        [Test]
+        public void should_lookup_all_seasons_for_multi_season_pack()
+        {
+            GivenFullSeason();
+            _parsedEpisodeInfo.SeasonNumbers = new[] { 1, 2, 3 };
+
+            Mocker.GetMock<IEpisodeService>()
+                .Setup(s => s.GetEpisodesBySeason(_series.Id, It.IsAny<int>()))
+                .Returns(_episodes);
+
+            Subject.GetEpisodes(_parsedEpisodeInfo, _series, false, null);
+
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 1), Times.Once);
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 2), Times.Once);
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 3), Times.Once);
+        }
+
+        [Test]
+        public void should_lookup_all_known_regular_seasons_for_complete_series_keyword()
+        {
+            GivenFullSeason();
+            _parsedEpisodeInfo.IsCompleteSeries = true;
+            _parsedEpisodeInfo.SeasonNumbers = Array.Empty<int>();
+            _series.Seasons = new List<Season>
+            {
+                new Season { SeasonNumber = 0 },
+                new Season { SeasonNumber = 1 },
+                new Season { SeasonNumber = 2 },
+                new Season { SeasonNumber = 3 }
+            };
+
+            Mocker.GetMock<IEpisodeService>()
+                .Setup(s => s.GetEpisodesBySeason(_series.Id, It.IsAny<int>()))
+                .Returns(_episodes);
+
+            Subject.GetEpisodes(_parsedEpisodeInfo, _series, false, null);
+
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 0), Times.Never);
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 1), Times.Once);
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 2), Times.Once);
+            Mocker.GetMock<IEpisodeService>().Verify(v => v.GetEpisodesBySeason(_series.Id, 3), Times.Once);
+        }
+
     }
 }
