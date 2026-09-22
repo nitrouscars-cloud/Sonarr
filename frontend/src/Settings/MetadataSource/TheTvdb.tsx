@@ -6,12 +6,13 @@ import styles from './TheTvdb.css';
 
 function TheTvdb() {
   const theme = useTheme();
+  const imageTheme = theme === 'night' ? 'dark' : theme;
 
   return (
     <div className={styles.container}>
       <img
         className={styles.image}
-        src={`${window.Sonarr.urlBase}/Content/Images/thetvdb-${theme}.png`}
+        src={`${window.Sonarr.urlBase}/Content/Images/thetvdb-${imageTheme}.png`}
       />
 
       <div className={styles.info}>

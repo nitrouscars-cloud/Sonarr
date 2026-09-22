@@ -215,10 +215,22 @@
       primaryHoverBorderColor: '#3483e7',
     };
 
+    var night = {
+      ...dark,
+      pageBackground: '#000',
+      themeDarkColor: '#050505',
+      panelBackground: '#080808',
+      textDimmedColor: '#b8b8b8',
+    };
+
     var theme = '_THEME_';
     var defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     var finalTheme =
-      theme === 'dark' || (theme === 'auto' && defaultDark) ? dark : light;
+      theme === 'night'
+        ? night
+        : theme === 'dark' || (theme === 'auto' && defaultDark)
+          ? dark
+          : light;
 
     Object.entries(finalTheme).forEach(([key, value]) => {
       document.documentElement.style.setProperty(`--${key}`, value);

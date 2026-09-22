@@ -9,6 +9,9 @@ function ApplyTheme() {
     Object.entries(themes[theme]).forEach(([key, value]) => {
       document.documentElement.style.setProperty(`--${key}`, value);
     });
+
+    document.documentElement.style.colorScheme =
+      theme === 'light' ? 'light' : 'dark';
   }, [theme]);
 
   // On Component Mount and Component Update

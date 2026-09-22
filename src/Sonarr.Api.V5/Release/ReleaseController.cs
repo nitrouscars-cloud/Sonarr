@@ -189,11 +189,16 @@ public class ReleaseController : RestController<ReleaseResource>
 
     [HttpGet]
     [Produces("application/json")]
-    public async Task<Results<Ok<List<ReleaseResource>>, BadRequest>> GetReleases(int? seriesId, int? episodeId, int? seasonNumber)
+    public async Task<Results<Ok<List<ReleaseResource>>, BadRequest>> GetReleases(int? seriesId, int? episodeId, int? seasonNumber, bool? completeSeries)
     {
         if (episodeId.HasValue)
         {
             return TypedResults.Ok(await GetEpisodeReleases(episodeId.Value));
+        }
+
+        if (seriesId.HasValue && completeSeries == true)
+        {
+            return TypedResults.Ok(await GetCompleteSeriesReleases(seriesId.Value));
         }
 
         if (seriesId.HasValue && seasonNumber.HasValue)
@@ -242,6 +247,26 @@ public class ReleaseController : RestController<ReleaseResource>
         catch (Exception ex)
         {
             _logger.Error(ex, "Season search failed: " + ex.Message);
+            throw new NzbDroneClientException(HttpStatusCode.InternalServerError, ex.Message);
+        }
+    }
+
+    private async Task<List<ReleaseResource>> GetCompleteSeriesReleases(int seriesId)
+    {
+        try
+        {
+            var decisions = await _releaseSearchService.CompleteSeriesSearch(seriesId, true, true);
+            var prioritizedDecisions = _prioritizeDownloadDecision.PrioritizeDecisions(decisions);
+
+            return MapDecisions(prioritizedDecisions, new List<EpisodeHistory>());
+        }
+        catch (SearchFailedException ex)
+        {
+            throw new NzbDroneClientException(HttpStatusCode.BadRequest, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Complete series search failed: " + ex.Message);
             throw new NzbDroneClientException(HttpStatusCode.InternalServerError, ex.Message);
         }
     }

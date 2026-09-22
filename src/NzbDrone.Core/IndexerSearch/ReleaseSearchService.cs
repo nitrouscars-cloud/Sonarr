@@ -23,6 +23,7 @@ namespace NzbDrone.Core.IndexerSearch
         Task<List<DownloadDecision>> EpisodeSearch(Episode episode, bool userInvokedSearch, bool interactiveSearch);
         Task<List<DownloadDecision>> SeasonSearch(int seriesId, int seasonNumber, bool missingOnly, bool monitoredOnly, bool userInvokedSearch, bool interactiveSearch);
         Task<List<DownloadDecision>> SeasonSearch(int seriesId, int seasonNumber, List<Episode> episodes, bool monitoredOnly, bool userInvokedSearch, bool interactiveSearch);
+        Task<List<DownloadDecision>> CompleteSeriesSearch(int seriesId, bool userInvokedSearch, bool interactiveSearch);
     }
 
     public class ReleaseSearchService : ISearchForReleases
@@ -158,6 +159,56 @@ namespace NzbDrone.Core.IndexerSearch
             }
 
             return DeDupeDecisions(downloadDecisions);
+        }
+
+        public async Task<List<DownloadDecision>> CompleteSeriesSearch(int seriesId, bool userInvokedSearch, bool interactiveSearch)
+        {
+            var series = _seriesService.GetSeries(seriesId);
+            var episodes = _episodeService.GetEpisodeBySeries(seriesId)
+                .Where(e => e.SeasonNumber > 0)
+                .ToList();
+
+            if (episodes.Empty())
+            {
+                _logger.Debug("No regular episodes found for complete-series search of {0}", series.Title);
+                return new List<DownloadDecision>();
+            }
+
+            var searchSpec = Get<SpecialEpisodeSearchCriteria>(series, episodes, false, userInvokedSearch, interactiveSearch);
+            var regularSeasons = series.Seasons
+                .Where(s => s.SeasonNumber > 0)
+                .Select(s => s.SeasonNumber)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+
+            var keywords = new List<string>
+            {
+                "Integrale",
+                "Intégrale",
+                "Serie complete",
+                "Série complète",
+                "Complete Series",
+                "Complete Show",
+                "Complete Collection"
+            };
+
+            if (regularSeasons.Count > 1)
+            {
+                keywords.Add($"S{regularSeasons.First():00}-S{regularSeasons.Last():00}");
+            }
+
+            searchSpec.EpisodeQueryTitles = searchSpec.CleanSceneTitles
+                .SelectMany(title => keywords.Select(keyword => $"{title} {keyword}"))
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .ToArray();
+
+            var decisions = await Dispatch(indexer => indexer.Fetch(searchSpec), searchSpec);
+
+            return DeDupeDecisions(decisions)
+                .Where(d => d.RemoteEpisode?.ParsedEpisodeInfo?.IsCompleteSeries == true ||
+                            d.RemoteEpisode?.ParsedEpisodeInfo?.IsMultiSeason == true)
+                .ToList();
         }
 
         private List<SceneSeasonMapping> GetSceneSeasonMappings(Series series, List<Episode> episodes)

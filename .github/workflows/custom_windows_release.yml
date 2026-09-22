@@ -1,0 +1,74 @@
+name: Custom Windows Release
+
+on:
+  push:
+    branches:
+      - feature/complete-series-search
+    paths:
+      - .github/workflows/custom_windows_release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Download Windows x64 backend from successful Build #7
+        uses: actions/download-artifact@v8
+        with:
+          name: build-win-x64
+          path: _output
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35686151039
+
+      - name: Download UI from successful Build #7
+        uses: actions/download-artifact@v8
+        with:
+          name: build_ui
+          path: _output/UI
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35686151039
+
+      - name: Assemble Windows package
+        shell: bash
+        run: |
+          set -euo pipefail
+          SONARR_DIR="_output/win-x64/net10.0/Sonarr"
+          test -f "$SONARR_DIR/Sonarr.exe"
+          test -f "_output/UI/index.html"
+          rm -rf "$SONARR_DIR/UI"
+          cp -r _output/UI "$SONARR_DIR/UI"
+          mkdir -p _release
+          cd _output/win-x64/net10.0
+          zip -rq "../../../_release/Sonarr.feature-complete-series-search.5.0.0.7.win-x64.zip" Sonarr
+
+      - name: SHA256
+        shell: bash
+        run: |
+          cd _release
+          sha256sum Sonarr.feature-complete-series-search.5.0.0.7.win-x64.zip | tee SHA256SUMS.txt
+
+      - name: Publish public test release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v5.0.0.7-integrale-night
+          name: Sonarr 5.0.0.7 Integrale + Night (Test)
+          commit: ${{ github.sha }}
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: |
+            _release/Sonarr.feature-complete-series-search.5.0.0.7.win-x64.zip
+            _release/SHA256SUMS.txt
+          body: |
+            Test build from commit 3a10f6083f871d0cb9964a91f8b22eb498dbe057.
+            Includes complete-series / Intégrale search and Night mode.
+            Build #7 passed frontend, backend, unit, PostgreSQL, and integration tests.

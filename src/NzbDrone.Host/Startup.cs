@@ -247,6 +247,7 @@ namespace NzbDrone.Host
                             options.ColorScheme = ColorScheme.Light;
                             break;
                         case "dark":
+                        case "night":
                             options.ColorScheme = ColorScheme.Dark;
                             break;
                         default:

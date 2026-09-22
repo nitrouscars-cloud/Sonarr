@@ -20,6 +20,7 @@ namespace Sonarr.Api.V3.Parse
         public List<Language> Languages { get; set; }
         public bool FullSeason { get; set; }
         public bool IsPartialSeason { get; set; }
+        public bool IsCompleteSeries { get; set; }
         public bool IsMultiSeason { get; set; }
         public bool IsSeasonExtra { get; set; }
         public bool IsSplitEpisode { get; set; }
@@ -61,6 +62,7 @@ namespace Sonarr.Api.V3.Parse
                 Languages = model.Languages,
                 FullSeason = model.FullSeason,
                 IsPartialSeason = model.IsPartialSeason,
+                IsCompleteSeries = model.IsCompleteSeries,
                 IsMultiSeason = model.IsMultiSeason,
                 IsSeasonExtra = model.IsSeasonExtra,
                 IsSplitEpisode = model.IsSplitEpisode,

@@ -113,6 +113,9 @@ namespace NzbDrone.Core.Test.ParserTests
         [TestCase("Series Title S01 S02 S03 S04", "Series Title", new[] { 1, 2, 3, 4 })]
         [TestCase("Series Title S01 S03 S04", "Series Title", new[] { 1, 3, 4 })]
         [TestCase("Series Title S01 S04", "Series Title", new[] { 1, 2, 3, 4 })]
+        [TestCase("Series Title Integrale S01-S04 1080p WEB-DL", "Series Title", new[] { 1, 2, 3, 4 })]
+        [TestCase("Series Title Intégrale S01-S04 1080p WEB-DL", "Series Title", new[] { 1, 2, 3, 4 })]
+        [TestCase("Series Title Serie complete S01-S04 1080p WEB-DL", "Series Title", new[] { 1, 2, 3, 4 })]
         public void should_parse_multi_season_release(string postTitle, string title, int[] expectedSeasons)
         {
             var result = Parser.Parser.ParseTitle(postTitle);
@@ -123,6 +126,26 @@ namespace NzbDrone.Core.Test.ParserTests
             result.IsPartialSeason.Should().BeFalse();
             result.IsMultiSeason.Should().BeTrue();
             result.SeasonNumbers.Should().Equal(expectedSeasons);
+        }
+
+        [TestCase("Series Title Integrale 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Intégrale 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Serie complete 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Série complète 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Complete Series 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Complete Show 1080p WEB-DL", "Series Title")]
+        [TestCase("Series Title Complete Collection 1080p WEB-DL", "Series Title")]
+        public void should_parse_complete_series_keyword_without_explicit_seasons(string postTitle, string title)
+        {
+            var result = Parser.Parser.ParseTitle(postTitle);
+            result.SeriesTitle.Should().Be(title);
+            result.EpisodeNumbers.Should().BeEmpty();
+            result.AbsoluteEpisodeNumbers.Should().BeEmpty();
+            result.FullSeason.Should().BeTrue();
+            result.IsCompleteSeries.Should().BeTrue();
+            result.IsPartialSeason.Should().BeFalse();
+            result.IsMultiSeason.Should().BeFalse();
+            result.SeasonNumbers.Should().BeEmpty();
         }
 
         [TestCase("30.Series.Season.04.HDTV.XviD-DIMENSION", 4)]

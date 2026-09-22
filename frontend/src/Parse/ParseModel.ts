@@ -24,6 +24,7 @@ export interface ParsedEpisodeInfo {
   languages: Language[];
   fullSeason: boolean;
   isPartialSeason: boolean;
+  isCompleteSeries: boolean;
   isMultiSeason: boolean;
   isSeasonExtra: boolean;
   special: boolean;
