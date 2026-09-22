@@ -4,6 +4,7 @@ using FizzWare.NBuilder;
 using FluentAssertions;
 using NUnit.Framework;
 using NzbDrone.Core.DecisionEngine.Specifications;
+using NzbDrone.Core.IndexerSearch.Definitions;
 using NzbDrone.Core.Parser.Model;
 using NzbDrone.Core.Test.Framework;
 using NzbDrone.Core.Tv;
@@ -47,9 +48,34 @@ namespace NzbDrone.Core.Test.DecisionEngineTests
         }
 
         [Test]
-        public void should_return_false_if_is_a_multi_season_release()
+        public void should_return_false_if_is_a_multi_season_release_from_automatic_search()
         {
             Subject.IsSatisfiedBy(_remoteEpisode, new()).Accepted.Should().BeFalse();
+        }
+
+        [Test]
+        public void should_return_true_if_is_a_multi_season_release_from_interactive_search()
+        {
+            var information = new ReleaseDecisionInformation
+            {
+                SearchCriteria = new SeasonSearchCriteria { InteractiveSearch = true }
+            };
+
+            Subject.IsSatisfiedBy(_remoteEpisode, information).Accepted.Should().BeTrue();
+        }
+
+        [Test]
+        public void should_return_true_if_is_complete_series_keyword_from_interactive_search()
+        {
+            _remoteEpisode.ParsedEpisodeInfo.SeasonNumbers = Array.Empty<int>();
+            _remoteEpisode.ParsedEpisodeInfo.IsCompleteSeries = true;
+
+            var information = new ReleaseDecisionInformation
+            {
+                SearchCriteria = new SeasonSearchCriteria { InteractiveSearch = true }
+            };
+
+            Subject.IsSatisfiedBy(_remoteEpisode, information).Accepted.Should().BeTrue();
         }
     }
 }
