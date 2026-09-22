@@ -17,10 +17,12 @@ namespace NzbDrone.Core.DecisionEngine.Specifications
 
         public virtual DownloadSpecDecision IsSatisfiedBy(RemoteEpisode subject, ReleaseDecisionInformation information)
         {
-            if (subject.ParsedEpisodeInfo.IsMultiSeason)
+            var isCompleteSeries = subject.ParsedEpisodeInfo.IsMultiSeason || subject.ParsedEpisodeInfo.IsCompleteSeries;
+
+            if (isCompleteSeries && information?.SearchCriteria?.InteractiveSearch != true)
             {
-                _logger.Debug("Multi-season release {0} rejected. Not supported", subject.Release.Title);
-                return DownloadSpecDecision.Reject(DownloadRejectionReason.MultiSeason, "Multi-season releases are not supported");
+                _logger.Debug("Multi-season/complete-series release {0} rejected for automatic search", subject.Release.Title);
+                return DownloadSpecDecision.Reject(DownloadRejectionReason.MultiSeason, "Multi-season releases are only supported through interactive complete-series search");
             }
 
             return DownloadSpecDecision.Accept();
